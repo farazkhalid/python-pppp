@@ -75,4 +75,10 @@ class Gecko(object):
         for item in items:
             data['item'].append({'value' : item[0], 'text' : item[1]})
         return self.push(widget_key, data)
+
+    def line(self, widget_key, values, **kwargs):
+        data = {'item' : [], 'settings' :kwargs}
+        for item in values:
+            data['item'].append(item)
+        return self.push(widget_key, data)
         
