@@ -1,3 +1,3 @@
-from .cubes import Cube, Gecko, Measures
+from .cubes import Cube, Measures
 from .sources import Source, SQL, GDoc
 
