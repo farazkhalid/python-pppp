@@ -56,23 +56,3 @@ class Measures(object):
         setattr(self, name if name else fn.func_name, im)
         return im
 
-class Gecko(object):
-    def __init__(self, api_key):
-        self.api_key = api_key
-        
-    def push(self, widget_key, data):
-        import requests, json
-        return requests.post("https://push.geckoboard.com/v1/send/%s" % widget_key, json.dumps({'api_key' : self.api_key, 'data' : data}))
-        
-    def number(self, widget_key, number1, number2=None):
-        data = {'item' : []}
-        if number1: data['item'].append({'value' : number1, 'text' : ''})
-        if number2: data['item'].append({'value' : number2, 'text' : ''})
-        return self.push(widget_key, data)
-    
-    def rag(self, widget_key, *items):
-        data = {'item' : []}
-        for item in items:
-            data['item'].append({'value' : item[0], 'text' : item[1]})
-        return self.push(widget_key, data)
-        
