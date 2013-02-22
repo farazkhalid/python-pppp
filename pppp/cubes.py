@@ -26,7 +26,7 @@ class Cube(object):
             for table_name in table_names:
                 r = self.relationships.get((table_name, next_table_name))
                 if r:
-                    return table_names + [next_table_name], table.merge(self.tables[next_table_name], left_on=r[0], right_on=r[1])
+                    return table_names + [next_table_name], table.merge(self.tables[next_table_name], left_on=r[0], right_on=r[1], how='left')
             raise ValueError("Don't know how to join %s to %s" % (next_table_name, "/".join(table_names)))
         return reduce(join_table, tables, ([base_table], self.tables[base_table]))[1]
     
