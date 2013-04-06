@@ -11,12 +11,12 @@ class SQL(Source):
 
     def __call__(self):
         import sqlalchemy
-        if self.engine not in SQL.engines: 
+        if self.engine not in SQL.engines:
             SQL.engines[self.engine] = sqlalchemy.create_engine(self.engine, pool_recycle=3600)
         results = SQL.engines[self.engine].execute(self.query)
         ret = pd.DataFrame.from_records(list(results), columns=results.keys(), coerce_float=True)
         if self.index_col is not None:
-            ret.set_index(self.index_col)    
+            return ret.set_index(self.index_col)
         return ret
 
 
