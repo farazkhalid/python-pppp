@@ -13,6 +13,7 @@ class Cube(object):
         self.m = self.measures
         self.tables = tables
         self.filename = filename
+        self.postprocessors = {}
 
     def sql(self, q, env={}):
         from pandasql import sqldf
@@ -27,6 +28,12 @@ class Cube(object):
             processed[(l[0], r[0])] = (l[1], r[1])
         return processed
 
+    def __getitem__(self, key):
+        return self.tables[key]
+
+    def __setitem__(self, key, value):
+        self.tables[key] = value
+
     def measure(self, *args, **kwargs):
         return self.measures.add_measure(*args, **kwargs)
 
@@ -39,21 +46,37 @@ class Cube(object):
             raise ValueError("Don't know how to join %s to %s" % (next_table_name, "/".join(table_names)))
         return reduce(join_table, tables, ([base_table], self.tables[base_table]))[1]
 
+    def postprocess(self, *deps):
+        def decorator(fn):
+            self.postprocessors[fn.func_name] = (deps, fn)
+            return fn
+        return decorator
+
+    def run_postprocessors(self, changed_tables):
+        changed_tables = set(changed_tables)
+        def should_run_pp((deps, fn)):
+            deps = set(deps)
+            return (len(deps & changed_tables)>0) and (len(deps - set(self.tables.keys())) == 0)
+        to_run = filter(should_run_pp, self.postprocessors.values())
+        for _, fn in to_run:
+            fn(self)
+
     def refresh(self, *tables):
         if not tables: tables = self.sources.keys()
         if callable(tables[0]): tables = [k for k, v in self.sources.items() if tables[0](v)]
         for t in tables:
             self.tables[t] = self.sources[t]().rename(columns=sanitize)
+        self.run_postprocessors(tables)
 
     def save_data(self, filename=None):
         from pandas.io.pytables import HDFStore
-        with closing(HDFStore(self.filename or filename)) as store:
+        with closing(HDFStore(filename or self.filename)) as store:
             for name, data in self.tables.items():
                 store['/data/%s' % name] = data
 
     def load_data(self, filename=None):
         from pandas.io.pytables import HDFStore
-        with closing(HDFStore(self.filename or filename)) as store:
+        with closing(HDFStore(filename or self.filename)) as store:
             tables = set(k.replace("/data/", "") for k in store.keys() if k.startswith('/data/'))
             for key in (tables & set(self.sources.keys())):
                 self.tables[key] = store['/data/%s' % key]
