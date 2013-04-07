@@ -68,13 +68,13 @@ class Cube(object):
             self.tables[t] = self.sources[t]().rename(columns=sanitize)
         self.run_postprocessors(tables)
 
-    def save_data(self, filename=None):
+    def save(self, filename=None):
         from pandas.io.pytables import HDFStore
         with closing(HDFStore(filename or self.filename)) as store:
             for name, data in self.tables.items():
                 store['/data/%s' % name] = data
 
-    def load_data(self, filename=None):
+    def load(self, filename=None):
         from pandas.io.pytables import HDFStore
         with closing(HDFStore(filename or self.filename)) as store:
             tables = set(k.replace("/data/", "") for k in store.keys() if k.startswith('/data/'))
