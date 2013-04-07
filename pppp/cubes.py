@@ -78,7 +78,7 @@ class Cube(object):
         from pandas.io.pytables import HDFStore
         with closing(HDFStore(filename or self.filename)) as store:
             tables = set(k.replace("/data/", "") for k in store.keys() if k.startswith('/data/'))
-            for key in (tables & set(self.sources.keys())):
+            for key in tables:
                 self.tables[key] = store['/data/%s' % key]
 
 class Measures(object):
